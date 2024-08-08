@@ -15,26 +15,25 @@ export class BooksService {
     return this.booksRepository.find();
   }
 
-  findOne(id: number): Promise<Book> {
-    return this.booksRepository.findOneBy({ id });
+  findOne(uuid: uuid): Promise<Book> {
+    return this.booksRepository.findOneBy({ uuid });
   }
 
   create(book: Book): Promise<Book> {
-    //book.uuid = uuid();
     return this.booksRepository.save(book);
   }
 
-  async update(id: number, book: Book): Promise<Book> {
-    await this.booksRepository.update(id, book);
-    return this.findOne(id);
+  async update(uuid: uuid, book: Book): Promise<Book> {
+    await this.booksRepository.update(uuid, book);
+    return this.findOne(uuid);
   }
 
-  async delete(id: number): Promise<void> {
-    await this.booksRepository.delete(id);
+  async delete(uuid: uuid): Promise<void> {
+    await this.booksRepository.delete(uuid);
   }
 
-  async borrowBook(id: number, userId: number): Promise<Book> {
-    const book = await this.findOne(id);
+  async borrowBook(uuid: uuid, userId: number): Promise<Book> {
+    const book = await this.findOne(uuid);
     if (book && book.availability) {
       book.availability = false;
       book.borrower = { id: userId } as any;
@@ -43,8 +42,8 @@ export class BooksService {
     return book;
   }
 
-  async returnBook(id: number): Promise<Book> {
-    const book = await this.findOne(id);
+  async returnBook(uuid: uuid): Promise<Book> {
+    const book = await this.findOne(uuid);
     if (book && !book.availability) {
       book.availability = true;
       book.borrower = null;

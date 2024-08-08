@@ -4,6 +4,8 @@ import {
   Delete,
   Get,
   Param,
+  ParseIntPipe,
+  ParseUUIDPipe,
   Patch,
   Post,
   Query,
@@ -20,9 +22,9 @@ export class BooksController {
     return this.bookService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.bookService.findOne(+id);
+  @Get(':uuid')
+  findOne(@Param('uuid', ParseUUIDPipe) uuid: string) {
+    return this.bookService.findOne(uuid);
   }
 
   @Post()
@@ -30,23 +32,26 @@ export class BooksController {
     return this.bookService.create(book);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() bookUpdate: Book) {
-    return this.bookService.update(+id, bookUpdate);
+  @Patch(':uuid')
+  update(@Param('uuid', ParseUUIDPipe) uuid: string, @Body() bookUpdate: Book) {
+    return this.bookService.update(uuid, bookUpdate);
   }
 
-  @Delete(':id')
-  delete(@Param('id') id: string) {
-    return this.bookService.delete(+id);
+  @Delete(':uuid')
+  delete(@Param('uuid', ParseUUIDPipe) uuid: string) {
+    return this.bookService.delete(uuid);
   }
 
-  @Post(':id/borrow')
-  borrowBook(@Param('id') id: string, @Body('userId') userId: number) {
-    return this.bookService.borrowBook(+id, userId);
+  @Post(':uuid/borrow')
+  borrowBook(
+    @Param('uuid', ParseUUIDPipe) uuid: string,
+    @Body('userId') userId: number,
+  ) {
+    return this.bookService.borrowBook(uuid, userId);
   }
 
-  @Post(':id/return')
-  returnBook(@Param('id') id: string) {
-    return this.bookService.returnBook(+id);
+  @Post(':uuid/return')
+  returnBook(@Param('uuid', ParseUUIDPipe) uuid: string) {
+    return this.bookService.returnBook(uuid);
   }
 }
