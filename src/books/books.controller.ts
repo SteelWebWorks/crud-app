@@ -4,14 +4,15 @@ import {
   Delete,
   Get,
   Param,
-  ParseIntPipe,
   ParseUUIDPipe,
   Patch,
   Post,
   Query,
+  ValidationPipe,
 } from '@nestjs/common';
 import { BooksService } from './books.service';
-import { Book } from './book.entity';
+import { CreateBookDto } from './dto/create-book.dto';
+import { UpdateBookDTO } from './dto/update-book.dto';
 
 @Controller('books')
 export class BooksController {
@@ -28,12 +29,15 @@ export class BooksController {
   }
 
   @Post()
-  create(@Body() book: Book) {
+  create(@Body(ValidationPipe) book: CreateBookDto) {
     return this.bookService.create(book);
   }
 
   @Patch(':uuid')
-  update(@Param('uuid', ParseUUIDPipe) uuid: string, @Body() bookUpdate: Book) {
+  update(
+    @Param('uuid', ParseUUIDPipe) uuid: string,
+    @Body(ValidationPipe) bookUpdate: UpdateBookDTO,
+  ) {
     return this.bookService.update(uuid, bookUpdate);
   }
 

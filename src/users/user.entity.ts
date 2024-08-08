@@ -6,7 +6,7 @@ import {
   Generated,
 } from 'typeorm';
 import { Book } from '../books/book.entity';
-import { Role } from './roles.enum';
+import { Role } from './enum/roles.enum';
 
 @Entity({ name: 'users' })
 export class User {

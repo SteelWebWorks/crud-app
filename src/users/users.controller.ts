@@ -8,9 +8,11 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
+  ValidationPipe,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { User } from './user.entity';
+import { CreateUserDTO } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Controller('users')
 export class UsersController {
@@ -27,12 +29,15 @@ export class UsersController {
   }
 
   @Post()
-  create(@Body() user: User) {
+  create(@Body(ValidationPipe) user: CreateUserDTO) {
     return this.userService.create(user);
   }
 
   @Patch(':uuid')
-  update(@Param('uuid', ParseUUIDPipe) uuid: string, @Body() userUpdate: User) {
+  update(
+    @Param('uuid', ParseUUIDPipe) uuid: string,
+    @Body(ValidationPipe) userUpdate: UpdateUserDto,
+  ) {
     return this.userService.update(uuid, userUpdate);
   }
 
