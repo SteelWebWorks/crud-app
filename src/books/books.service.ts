@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { v4 as uuid } from 'uuid';
@@ -17,8 +17,14 @@ export class BooksService {
     return this.booksRepository.find();
   }
 
-  findOne(uuid: uuid): Promise<Book> {
-    return this.booksRepository.findOneBy({ uuid });
+  async findOne(uuid: uuid): Promise<Book> {
+    const book = await this.booksRepository.findOneBy({ uuid });
+
+    if (book === null) {
+      throw new NotFoundException();
+    }
+
+    return book;
   }
 
   create(book: CreateBookDto): Promise<Book> {
