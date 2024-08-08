@@ -1,4 +1,10 @@
-import { Entity, Column, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  OneToMany,
+  Generated,
+} from 'typeorm';
 import { Book } from '../books/book.entity';
 import { Role } from './roles.enum';
 
@@ -7,7 +13,8 @@ export class User {
   @PrimaryGeneratedColumn({ type: 'bigint' })
   id: number;
 
-  @Column({ type: 'uuid', unique: true })
+  @Column({ type: 'uuid' })
+  @Generated('uuid')
   uuid: string;
 
   @Column()

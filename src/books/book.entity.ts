@@ -1,4 +1,10 @@
-import { Entity, Column, PrimaryGeneratedColumn, ManyToOne } from 'typeorm';
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  ManyToOne,
+  Generated,
+} from 'typeorm';
 import { User } from '../users/user.entity';
 
 @Entity({ name: 'books' })
@@ -6,7 +12,8 @@ export class Book {
   @PrimaryGeneratedColumn({ type: 'bigint' })
   id: number;
 
-  @Column({ type: 'uuid', unique: true })
+  @Column({ type: 'uuid' })
+  @Generated('uuid')
   uuid: string;
 
   @Column()
