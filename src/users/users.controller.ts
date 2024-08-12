@@ -18,6 +18,7 @@ import { RolesGuard } from 'src/auth/guards/roles/roles.guard';
 import { Role } from './enum/roles.enum';
 import { Roles } from 'src/auth/guards/roles/roles.decorator';
 import { JwtGuard } from 'src/auth/guards/jwt.guard';
+import { Action } from './enum/action.enum';
 
 @Controller('users')
 @UseGuards(JwtGuard, RolesGuard)
@@ -31,22 +32,44 @@ export class UsersController {
   }
 
   @Get(':uuid')
-  @Roles(Role.ADMIN, Role.EMPLOYEE, Role.BORROWER)
   findOne(@Param('uuid', ParseUUIDPipe) uuid: string) {
     const user = this.userService.findOne(uuid);
     if (!user) {
       throw new NotFoundException();
     }
-    return;
+    return user;
   }
 
   @Post(':uuid/borrow')
   @Roles(Role.ADMIN, Role.EMPLOYEE)
-  borrow(
+  async borrow(
     @Param('uuid', ParseUUIDPipe) uuid: string,
     @Body('bookUuids') bookUuids: string[],
   ) {
-    const user = this.userService.borrowBooks(uuid, bookUuids);
+    const user = await this.userService.handleBorrow(
+      uuid,
+      bookUuids,
+      Action.BORROW,
+    );
+
+    if (user === null) {
+      throw new InternalServerErrorException('Something went wrong');
+    }
+
+    return user;
+  }
+
+  @Post(':uuid/return')
+  @Roles(Role.ADMIN, Role.EMPLOYEE)
+  async return(
+    @Param('uuid', ParseUUIDPipe) uuid: string,
+    @Body('bookUuids') bookUuids: string[],
+  ) {
+    const user = await this.userService.handleBorrow(
+      uuid,
+      bookUuids,
+      Action.RETURN,
+    );
 
     if (user === null) {
       throw new InternalServerErrorException('Something went wrong');

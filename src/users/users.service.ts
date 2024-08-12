@@ -8,6 +8,8 @@ import * as bcryptjs from 'bcryptjs';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { Role } from './enum/roles.enum';
 import { BooksService } from 'src/books/books.service';
+import { Book } from 'src/books/book.entity';
+import { Action } from './enum/action.enum';
 
 @Injectable()
 export class UsersService {
@@ -72,30 +74,46 @@ export class UsersService {
     await this.userRepository.delete(uuid);
   }
 
-  async borrowBooks(uuid: uuid, booksUuids): Promise<User> {
+  async handleBorrow(
+    uuid: uuid,
+    booksUuids: string[],
+    action: Action,
+  ): Promise<User> {
+    const findUser = await this.findOne(uuid);
+
+    if (findUser === null) {
+      return null;
+    }
+
+    const findBooks = await this.bookService.findMany(booksUuids, action);
+
+    if (findBooks === null || findBooks.length === 0) {
+      return null;
+    }
+
+    findBooks.forEach(async (findBook: Book) => {
+      if (action === Action.BORROW && findBook.borrower) {
+        return null;
+      }
+
+      if (
+        action === Action.RETURN &&
+        findBook.borrower.uuid !== findUser.uuid
+      ) {
+        return null;
+      }
+
+      const { id, uuid, name, description, ...book } = findBook;
+      book.borrower = action === Action.BORROW ? findUser : null;
+      book.availability = action === Action.RETURN;
+      await this.bookService.update(uuid, book);
+    });
+
     const user = await this.userRepository.findOne({
-      select: {
-        id: true,
-        uuid: true,
-      },
-      where: {
-        uuid,
-      },
+      where: { uuid },
       relations: ['books'],
     });
 
-    if (user === null) {
-      return null;
-    }
-
-    const books = await this.bookService.findMany(booksUuids);
-
-    if (books === null) {
-      return null;
-    }
-
-    user.books = books;
-
-    await this.userRepository.save(user);
+    return user;
   }
 }

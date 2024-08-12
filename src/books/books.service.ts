@@ -5,6 +5,7 @@ import { v4 as uuid } from 'uuid';
 import { Book } from './book.entity';
 import { CreateBookDto } from './dto/create-book.dto';
 import { UpdateBookDTO } from './dto/update-book.dto';
+import { Action } from 'src/users/enum/action.enum';
 
 @Injectable()
 export class BooksService {
@@ -31,9 +32,13 @@ export class BooksService {
     return this.booksRepository.save(book);
   }
 
-  async findMany(booksUuids): Promise<Book[]> {
+  async findMany(booksUuids: string[], action: Action): Promise<Book[]> {
     const books = await this.booksRepository.find({
-      where: { uuid: In(booksUuids) },
+      where: {
+        uuid: In(booksUuids),
+        availability: action === Action.BORROW ? true : false,
+      },
+      relations: ['borrower'],
     });
 
     for (const book in books) {
@@ -46,7 +51,7 @@ export class BooksService {
   }
 
   async update(uuid: uuid, book: UpdateBookDTO): Promise<Book> {
-    await this.booksRepository.update(uuid, book);
+    await this.booksRepository.update({ uuid: uuid }, book);
     return this.findOne(uuid);
   }
 
