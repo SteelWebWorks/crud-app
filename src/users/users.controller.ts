@@ -46,17 +46,17 @@ export class UsersController {
     @Param('uuid', ParseUUIDPipe) uuid: string,
     @Body('bookUuids') bookUuids: string[],
   ) {
-    const user = await this.userService.handleBorrow(
+    const books = await this.userService.handleBorrow(
       uuid,
       bookUuids,
       Action.BORROW,
     );
 
-    if (user === null) {
+    if (books === null) {
       throw new InternalServerErrorException('Something went wrong');
     }
 
-    return user;
+    return await this.userService.findOne(uuid);
   }
 
   @Post(':uuid/return')

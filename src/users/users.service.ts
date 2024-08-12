@@ -10,6 +10,8 @@ import { Role } from './enum/roles.enum';
 import { BooksService } from 'src/books/books.service';
 import { Book } from 'src/books/book.entity';
 import { Action } from './enum/action.enum';
+import exp from 'constants';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class UsersService {
@@ -17,6 +19,7 @@ export class UsersService {
     @InjectRepository(User)
     private userRepository: Repository<User>,
     private readonly bookService: BooksService,
+    private configService: ConfigService,
   ) {}
 
   findAll(): Promise<User[]> {
@@ -78,7 +81,7 @@ export class UsersService {
     uuid: uuid,
     booksUuids: string[],
     action: Action,
-  ): Promise<User> {
+  ): Promise<Book[]> {
     const findUser = await this.findOne(uuid);
 
     if (findUser === null) {
@@ -102,18 +105,21 @@ export class UsersService {
       ) {
         return null;
       }
+      const expire = new Date();
+      const expireDays = this.configService.get<number>(
+        'BORROW_EXPIRE_DAYS',
+        14,
+      );
+      expire.setDate(expire.getDate() + expireDays);
 
       const { id, uuid, name, description, ...book } = findBook;
+
+      book.borrowExpire = action === Action.BORROW ? expire : null;
       book.borrower = action === Action.BORROW ? findUser : null;
       book.availability = action === Action.RETURN;
       await this.bookService.update(uuid, book);
     });
 
-    const user = await this.userRepository.findOne({
-      where: { uuid },
-      relations: ['books'],
-    });
-
-    return user;
+    return findBooks;
   }
 }

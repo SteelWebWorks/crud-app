@@ -25,6 +25,9 @@ export class Book {
   @Column({ default: true })
   availability: boolean;
 
+  @Column({ type: 'date', nullable: true })
+  borrowExpire: Date;
+
   @ManyToOne(() => User, (user) => user.books, { nullable: true })
   borrower: User;
 }

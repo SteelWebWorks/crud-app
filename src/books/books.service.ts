@@ -6,12 +6,14 @@ import { Book } from './book.entity';
 import { CreateBookDto } from './dto/create-book.dto';
 import { UpdateBookDTO } from './dto/update-book.dto';
 import { Action } from 'src/users/enum/action.enum';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class BooksService {
   constructor(
     @InjectRepository(Book)
     private booksRepository: Repository<Book>,
+    private configService: ConfigService,
   ) {}
 
   findAll(): Promise<Book[]> {
@@ -62,7 +64,14 @@ export class BooksService {
   async borrowBook(uuid: uuid, userId: number): Promise<Book> {
     const book = await this.findOne(uuid);
     if (book && book.availability) {
+      const expire = new Date();
+      const expireDays = this.configService.get<number>(
+        'BORROW_EXPIRE_DAYS',
+        14,
+      );
+      expire.setDate(expire.getDate() + expireDays);
       book.availability = false;
+      book.borrowExpire = expire;
       book.borrower = { id: userId } as any;
       await this.booksRepository.save(book);
     }
@@ -73,6 +82,7 @@ export class BooksService {
     const book = await this.findOne(uuid);
     if (book && !book.availability) {
       book.availability = true;
+      book.borrowExpire = null;
       book.borrower = null;
       await this.booksRepository.save(book);
     }
