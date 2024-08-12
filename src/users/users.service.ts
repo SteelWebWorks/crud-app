@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { v4 as uuid } from 'uuid';
@@ -7,12 +7,14 @@ import { CreateUserDTO } from './dto/create-user.dto';
 import * as bcryptjs from 'bcryptjs';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { Role } from './enum/roles.enum';
+import { BooksService } from 'src/books/books.service';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(User)
     private userRepository: Repository<User>,
+    private readonly bookService: BooksService,
   ) {}
 
   findAll(): Promise<User[]> {
@@ -20,7 +22,10 @@ export class UsersService {
   }
 
   async findOne(uuid: uuid): Promise<User> {
-    const user = await this.userRepository.findOneBy({ uuid });
+    const user = await this.userRepository.findOne({
+      where: { uuid },
+      relations: ['books'],
+    });
 
     if (user === null) {
       return null;
@@ -30,7 +35,10 @@ export class UsersService {
   }
 
   async findOneByUsername(username: string): Promise<User> {
-    const user = await this.userRepository.findOneBy({ username });
+    const user = await this.userRepository.findOne({
+      where: { username },
+      relations: ['books'],
+    });
 
     if (user === null) {
       return null;
@@ -62,5 +70,32 @@ export class UsersService {
 
   async delete(uuid: uuid): Promise<void> {
     await this.userRepository.delete(uuid);
+  }
+
+  async borrowBooks(uuid: uuid, booksUuids): Promise<User> {
+    const user = await this.userRepository.findOne({
+      select: {
+        id: true,
+        uuid: true,
+      },
+      where: {
+        uuid,
+      },
+      relations: ['books'],
+    });
+
+    if (user === null) {
+      return null;
+    }
+
+    const books = await this.bookService.findMany(booksUuids);
+
+    if (books === null) {
+      return null;
+    }
+
+    user.books = books;
+
+    await this.userRepository.save(user);
   }
 }

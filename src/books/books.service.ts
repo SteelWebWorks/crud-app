@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { v4 as uuid } from 'uuid';
 import { Book } from './book.entity';
 import { CreateBookDto } from './dto/create-book.dto';
@@ -29,6 +29,20 @@ export class BooksService {
 
   create(book: CreateBookDto): Promise<Book> {
     return this.booksRepository.save(book);
+  }
+
+  async findMany(booksUuids): Promise<Book[]> {
+    const books = await this.booksRepository.find({
+      where: { uuid: In(booksUuids) },
+    });
+
+    for (const book in books) {
+      if (book === null) {
+        return null;
+      }
+    }
+
+    return books;
   }
 
   async update(uuid: uuid, book: UpdateBookDTO): Promise<Book> {

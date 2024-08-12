@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  InternalServerErrorException,
   NotFoundException,
   Param,
   ParseUUIDPipe,
@@ -37,6 +38,21 @@ export class UsersController {
       throw new NotFoundException();
     }
     return;
+  }
+
+  @Post(':uuid/borrow')
+  @Roles(Role.ADMIN, Role.EMPLOYEE)
+  borrow(
+    @Param('uuid', ParseUUIDPipe) uuid: string,
+    @Body('bookUuids') bookUuids: string[],
+  ) {
+    const user = this.userService.borrowBooks(uuid, bookUuids);
+
+    if (user === null) {
+      throw new InternalServerErrorException('Something went wrong');
+    }
+
+    return user;
   }
 
   @Post()

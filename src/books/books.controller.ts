@@ -19,7 +19,7 @@ export class BooksController {
   constructor(private readonly bookService: BooksService) {}
 
   @Get()
-  findAll(@Query('status') status?: 'AVAILABLE' | 'NOT_AVAILABE') {
+  findAll(@Query('status') availability?: boolean) {
     return this.bookService.findAll();
   }
 
