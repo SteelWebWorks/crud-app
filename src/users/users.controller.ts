@@ -9,7 +9,6 @@ import {
   Patch,
   Post,
   UseGuards,
-  ValidationPipe,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDTO } from './dto/create-user.dto';
@@ -42,7 +41,7 @@ export class UsersController {
 
   @Post()
   @Roles(Role.ADMIN)
-  create(@Body(ValidationPipe) user: CreateUserDTO) {
+  create(@Body() user: CreateUserDTO) {
     return this.userService.create(user);
   }
 
@@ -50,7 +49,7 @@ export class UsersController {
   @Roles(Role.ADMIN)
   update(
     @Param('uuid', ParseUUIDPipe) uuid: string,
-    @Body(ValidationPipe) userUpdate: UpdateUserDto,
+    @Body() userUpdate: UpdateUserDto,
   ) {
     return this.userService.update(uuid, userUpdate);
   }

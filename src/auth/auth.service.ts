@@ -5,6 +5,7 @@ import { JwtService } from '@nestjs/jwt';
 import { Role } from 'src/users/enum/roles.enum';
 import { UsersService } from 'src/users/users.service';
 import { CreateUserDTO } from 'src/users/dto/create-user.dto';
+import * as bcryptjs from 'bcryptjs';
 
 @Injectable()
 export class AuthService {
@@ -16,11 +17,7 @@ export class AuthService {
   async validateUser({ username, password }: AuthPlayloadDto): Promise<string> {
     const findUser = await this.usersService.findOneByUsername(username);
 
-    if (findUser === null) {
-      return null;
-    }
-
-    if (password === findUser.password) {
+    if (findUser && (await bcryptjs.compare(password, findUser.password))) {
       const { password, ...user } = findUser;
       return this.jwtService.sign(user);
     }
