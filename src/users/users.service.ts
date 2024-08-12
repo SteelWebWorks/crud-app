@@ -4,7 +4,9 @@ import { Repository } from 'typeorm';
 import { v4 as uuid } from 'uuid';
 import { User } from './user.entity';
 import { CreateUserDTO } from './dto/create-user.dto';
-import { UpdateBookDTO } from 'src/books/dto/update-book.dto';
+import * as bcryptjs from 'bcryptjs';
+import { UpdateUserDto } from './dto/update-user.dto';
+import { Role } from './enum/roles.enum';
 
 @Injectable()
 export class UsersService {
@@ -21,17 +23,39 @@ export class UsersService {
     const user = await this.userRepository.findOneBy({ uuid });
 
     if (user === null) {
-      throw new NotFoundException();
+      return null;
     }
 
     return user;
   }
 
-  create(user: CreateUserDTO): Promise<User> {
-    return this.userRepository.save(user);
+  async findOneByUsername(username: string): Promise<User> {
+    const user = await this.userRepository.findOneBy({ username });
+
+    if (user === null) {
+      return null;
+    }
+
+    return user;
   }
 
-  async update(uuid: uuid, user: UpdateBookDTO): Promise<User> {
+  async create(user: CreateUserDTO): Promise<User> {
+    const salt = await bcryptjs.genSalt();
+    const passwordHash = await bcryptjs.hash(user.password, salt);
+
+    const newUser = this.userRepository.create({
+      ...user,
+      password: passwordHash,
+      role: Role.BORROWER,
+    });
+    return this.userRepository.save(newUser);
+  }
+
+  async update(uuid: uuid, user: UpdateUserDto): Promise<User> {
+    if (user.password) {
+      const salt = await bcryptjs.genSalt();
+      user.password = await bcryptjs.hash(user.password, salt);
+    }
     await this.userRepository.update(uuid, user);
     return this.findOne(uuid);
   }
